@@ -26,6 +26,10 @@ func connect(host string) (*conn, error) {
 	}, nil
 }
 
+func (c *conn) disconnect() error {
+	return c.tcp.Close()
+}
+
 func (c *conn) write(fs string, args ...interface{}) error {
 	return c.w.PrintfLine(fs, args...)
 }
