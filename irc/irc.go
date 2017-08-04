@@ -36,6 +36,10 @@ func (i *IRC) Register() {
 	i.SetNick(i.Nick)
 }
 
+func (i *IRC) Join(cn string) {
+	i.cmd("JOIN %s", cn)
+}
+
 type DoneCallback func(error)
 
 type MessageCallback func(string)
@@ -63,6 +67,10 @@ func (i *IRC) User(user, host, server, realname string) {
 
 func (i *IRC) SetNick(nn string) {
 	i.cmd("NICK %s", nn)
+}
+
+func (i *IRC) PrivMsg(to string, msg string) {
+	i.cmd("PRIVMSG %s :%s", to, msg)
 }
 
 func (i *IRC) parse(rawstr string) {

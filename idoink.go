@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var i *irc.IRC
+
 func main() {
 	nick := flag.String("nick", "", "IRC nickname to use")
 	server := flag.String("server", "", "IRC server:port")
@@ -24,7 +26,8 @@ func main() {
 		parsedChans = strings.Split(*chans, ",")
 	}
 
-	i, err := irc.New(*nick, *server, parsedChans)
+	var err error
+	i, err = irc.New(*nick, *server, parsedChans)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,6 +42,6 @@ func main() {
 	})
 
 	for m := range mc {
-		parseMsg(m, i)
+		parseMsg(m)
 	}
 }

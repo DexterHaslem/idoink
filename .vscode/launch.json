@@ -11,7 +11,7 @@
 			"host": "127.0.0.1",
 			"program": "${workspaceRoot}",
 			"env": {},
-			"args": ["-nick", "dmh_", "-server", "us.quakenet.org:6667"],
+			"args": ["-nick", "dmhbot", "-server", "us.quakenet.org:6667", "-chans", "#dmhbot"],
 			"showLog": true
 		}
 	]
