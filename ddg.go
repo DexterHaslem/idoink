@@ -10,7 +10,7 @@ import (
 
 const ddgCmd = "ddg"
 
-const api = "https://api.duckduckgo.com/?q=%s&format=json&t=dmhbot"
+const ddgAPI = "https://api.duckduckgo.com/?q=%s&format=json&t=dmhbot"
 
 type ddgResult struct {
 	Result   string `json:"Result"`
@@ -33,7 +33,7 @@ type ddgResp struct {
 func ddg(from, to string, chunks ...string) {
 	// squish message to flat string and then query it
 	q := strings.Join(chunks, "")
-	url := fmt.Sprintf(api, q)
+	url := fmt.Sprintf(ddgAPI, q)
 
 	go func() {
 		r, err := http.Get(url)

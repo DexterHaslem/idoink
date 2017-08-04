@@ -95,5 +95,8 @@ func handleBotMsg(from, to, cmd string, chunks ...string) {
 	case ddgCmd:
 		ddg(from, to, chunks...)
 		break
+	case lastfmCmd:
+		lastfm(from, to, chunks...)
+		break
 	}
 }
