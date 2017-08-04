@@ -1,3 +1,6 @@
 debug
 *.debug
 *.test
+
+# prevent future commits
+lastfmkey.json
