@@ -74,6 +74,9 @@ func privMsg(from, to string, rest ...string) {
 	msg := strings.Join(rest, " ")[1:]
 	log.Printf("privmsg from %s to %s: %s\n", fn, to, msg)
 
+	// always update last seen even if not for us
+	updateLastSeen(fn, msg, to)
+
 	// so first thing we check for is bot magic
 	trimmed := rest[0][1:]
 	if trimmed != botMagic {
@@ -97,6 +100,15 @@ func handleBotMsg(from, to, cmd string, chunks ...string) {
 		break
 	case lastfmCmd:
 		lastfm(from, to, chunks...)
+		break
+	case lastSeenCmd:
+		lastSeen(from, to, chunks...)
+		break
+	case bamCmd:
+		bam(from, to, chunks...)
+		break
+	default:
+		i.PrivMsg(to, "unknown command")
 		break
 	}
 }

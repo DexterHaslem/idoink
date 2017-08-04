@@ -40,6 +40,10 @@ func (i *IRC) Join(cn string) {
 	i.cmd("JOIN %s", cn)
 }
 
+func (i *IRC) Part(cn string) {
+	i.cmd("PART %s", cn)
+}
+
 type DoneCallback func(error)
 
 type MessageCallback func(string)
@@ -58,6 +62,9 @@ func (i *IRC) Start(m MessageCallback, d DoneCallback) error {
 }
 
 func (i *IRC) Close() error {
+	// send a quit msg first so
+	// we get a clean quit msg
+	i.cmd("QUIT :dmhbot")
 	return i.c.disconnect()
 }
 
