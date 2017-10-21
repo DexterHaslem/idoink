@@ -37,7 +37,7 @@ var lastfmCreds *lastfmApiCreds
 
 func init() {
 	lastfmCreds = &lastfmApiCreds{}
-	fb, err := ioutil.ReadFile("apikeys/lastfm.json")
+	fb, err := ioutil.ReadFile("lastfm.json")
 	if err == nil {
 		err = json.Unmarshal(fb, lastfmCreds)
 		if err != nil {

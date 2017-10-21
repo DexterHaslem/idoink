@@ -2,4 +2,5 @@ debug
 *.debug
 *.test
 
-apikeys/
+
+handlers/lastfm/lastfm.json
