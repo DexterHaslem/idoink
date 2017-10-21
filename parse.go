@@ -1,4 +1,4 @@
-package main
+package idoink
 
 import (
 	"log"
@@ -10,7 +10,7 @@ const botMagic = "^bot"
 // parseMsg is root level handler, it handles
 // protocol level messages as well as ferrying the
 // higher level messages off to subparsers
-func parseMsg(msg string) {
+func (i *idoink) parseMsg(msg string) {
 	//log.Printf("parseMsg: %s\n", msg)
 	chunks := strings.Split(msg, " ")
 	switch chunks[0] {
@@ -18,30 +18,30 @@ func parseMsg(msg string) {
 		// chunk 1 contains the sep :12312412341
 		challenge := chunks[1] //strings.Replace(chunks[1], ":", "", -1)
 		//i.Pong(challenge)
-		i.Pong(challenge[1:])
+		i.irc.Pong(challenge[1:])
 
 		// we get this after register, join our chans
-		for _, c := range i.Chans {
-			i.Join(c)
+		for _, c := range i.irc.Chans {
+			i.irc.Join(c)
 		}
 		break
 	case "NOTICE":
 		switch chunks[1] {
 		case "AUTH":
 			if chunks[len(chunks)-1] == "response" {
-				i.Register()
+				i.irc.Register()
 			}
 			break
 		}
 	default:
 		if chunks[0][0] == byte(':') {
-			tryServerMessage(chunks)
+			i.tryServerMessage(chunks)
 		}
 		break
 	}
 }
 
-func tryServerMessage(chunks []string) {
+func (i *idoink) tryServerMessage(chunks []string) {
 	// qnet in particular sends these server messages
 	// with codes, eg
 	//:cymru.us.quakenet.org 001
@@ -59,23 +59,23 @@ func tryServerMessage(chunks []string) {
 	case "NOTICE":
 		// on qnet these are some of the last statuslines to come in
 		// server will parrot notice to nick, send joins after htis
-		for _, c := range i.Chans {
-			i.Join(c)
+		for _, c := range i.irc.Chans {
+			i.irc.Join(c)
 		}
 	case "PRIVMSG":
-		privMsg(chunks[0], chunks[2], chunks[3:]...)
+		i.onPrivMsg(chunks[0], chunks[2], chunks[3:]...)
 		break
 	}
 }
 
-func privMsg(from, to string, rest ...string) {
+func (i *idoink) onPrivMsg(from, to string, rest ...string) {
 	//:dmh!sid189360@id-189360.charlton.irccloud.com PRIVMSG #warsow.na :haa ownage
 	fn := strings.Split(from, "!")[0][1:]
 	msg := strings.Join(rest, " ")[1:]
 	log.Printf("privmsg from %s to %s: %s\n", fn, to, msg)
 
 	// always update last seen even if not for us
-	updateLastSeen(fn, msg, to)
+	// updateLastSeen(fn, msg, to)
 
 	// so first thing we check for is bot magic
 	trimmed := rest[0][1:]
@@ -89,26 +89,33 @@ func privMsg(from, to string, rest ...string) {
 	if len(rest) >= 3 {
 		params = rest[2:]
 	}
-	handleBotMsg(fn, to, cmd, params...)
+
+	i.handleBotMsg(fn, to, cmd, params...)
 }
 
-func handleBotMsg(from, to, cmd string, chunks ...string) {
-	// maybe consider to containing only chans, kind of redundant tho
-	switch cmd {
-	case ddgCmd:
-		ddg(from, to, chunks...)
-		break
-	case lastfmCmd:
-		lastfm(from, to, chunks...)
-		break
-	case lastSeenCmd:
-		lastSeen(from, to, chunks...)
-		break
-	case bamCmd:
-		bam(from, to, chunks...)
-		break
-	default:
-		i.PrivMsg(to, "unknown command")
-		break
+func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
+	run := []hm{}
+	// filter through handlers to see what we need to run
+	// TODO: iterating map is nondeterministic in go, do in a set
+	// order of register in case one requests no further processing
+	for _, hi := range i.handlers {
+		if hi.prefix == "" || hi.prefix == cmd {
+			run = append(run, hi)
+		}
+	}
+
+	if len(run) < 1 {
+		i.irc.PrivMsg(to, "unknown command")
+		return
+	}
+
+	for _, hi := range run {
+		cont, err := hi.h(from, to, rest...)
+		if err != nil {
+			log.Printf("error on %s handler(#%d): %s\n", hi.prefix, hi.id, err)
+		}
+		if !cont {
+			break
+		}
 	}
 }

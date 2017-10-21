@@ -3,7 +3,6 @@ package main
 const bamCmd = "!"
 
 func bam(from, to string, rest ...string) {
-
 	if len(rest) < 1 {
 		return
 	}
