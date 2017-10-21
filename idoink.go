@@ -1,6 +1,7 @@
 package idoink
 
 import (
+	"errors"
 	"idoink/irc"
 	"log"
 	"strings"
@@ -10,20 +11,21 @@ import (
 // is the main idoink type, it contains all settings for the irc bot
 type idoink struct {
 	irc           *irc.IRC
-	m             *sync.Mutex
-	handlers      map[int]hm
+	hc            int
+	handlers      map[int]*hm
 	nick          string
 	server        string
 	chansList     string
 	parsedChans   []string
 	stopRequested bool
+	m             *sync.Mutex
 }
 
 // I is an instance of the idoink bot, it has functions to control it
 type I interface {
 	Start() error
 	Stop() error
-	AddHandler(string, *H) (int, error)
+	AddHandler(string, H) (int, error)
 	RemoveHandler(int) error
 }
 
@@ -79,10 +81,32 @@ func (i *idoink) Stop() error {
 
 // AddHandler will add a new hook for every privmsg line received
 // it will only fire for a given prefix if it is not an empty string
-func (i *idoink) AddHandler(prefix string, h *H) (int, error) {
+func (i *idoink) AddHandler(prefix string, h H) (int, error) {
+	i.m.Lock()
+	defer i.m.Unlock()
+
+	// note: prefix duplicates are allowed currently.
+	// add a filter here if they should be unique
+	i.hc++
+
+	i.handlers[i.hc] = &hm{
+		id:     i.hc,
+		h:      h,
+		prefix: prefix,
+	}
+
 	return 0, nil
 }
 
 func (i *idoink) RemoveHandler(id int) error {
+	i.m.Lock()
+	defer i.m.Unlock()
+
+	_, ok := i.handlers[id]
+	if !ok {
+		return errors.New("not found")
+	}
+
+	delete(i.handlers, id)
 	return nil
 }

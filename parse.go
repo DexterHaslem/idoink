@@ -49,6 +49,7 @@ func (i *idoink) tryServerMessage(chunks []string) {
 		return
 	}
 
+	// TODO: abstract this somewhere too
 	switch chunks[1] {
 	case "005":
 		log.Printf("Server CAPS: %v", chunks[3:])
@@ -94,11 +95,21 @@ func (i *idoink) onPrivMsg(from, to string, rest ...string) {
 }
 
 func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
-	run := []hm{}
+	// nothing to run
+	if i.hc < 1 {
+		return
+	}
+
+	run := []*hm{}
 	// filter through handlers to see what we need to run
-	// TODO: iterating map is nondeterministic in go, do in a set
-	// order of register in case one requests no further processing
-	for _, hi := range i.handlers {
+	// beware, iterating map is nondeterministic in go, so loop by id manually
+	// this will preserve order they registered in in case a handler requests
+	// to stop processing
+	for idx := 0; idx < len(i.handlers); idx++ {
+		hi, ok := i.handlers[idx+1]
+		if !ok {
+			break
+		}
 		if hi.prefix == "" || hi.prefix == cmd {
 			run = append(run, hi)
 		}
@@ -110,11 +121,12 @@ func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
 	}
 
 	for _, hi := range run {
+
 		cont, err := hi.h(from, to, rest...)
+
 		if err != nil {
 			log.Printf("error on %s handler(#%d): %s\n", hi.prefix, hi.id, err)
-		}
-		if !cont {
+		} else if !cont {
 			break
 		}
 	}
