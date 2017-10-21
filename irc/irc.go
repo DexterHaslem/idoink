@@ -2,6 +2,10 @@ package irc
 
 import "github.com/labstack/gommon/log"
 
+// TODO: consider pulling to interface,
+// currently IRC is tacked on events passed to handlers,
+// do we really want to expose entire struct state just for the methods
+
 type IRC struct {
 	c     *conn
 	Nick  string

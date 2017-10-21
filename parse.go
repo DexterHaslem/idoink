@@ -120,9 +120,18 @@ func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
 		return
 	}
 
+	// construct one new event for all handlers.
+	// if 3rd party handler modify it, ¯\_(ツ)_/¯
+	e := &E{
+		From: from,
+		To:   to,
+		Rest: rest,
+		IRC:  i.irc,
+	}
+
 	for _, hi := range run {
 
-		cont, err := hi.h(from, to, rest...)
+		cont, err := hi.h(e)
 
 		if err != nil {
 			log.Printf("error on %s handler(#%d): %s\n", hi.prefix, hi.id, err)
