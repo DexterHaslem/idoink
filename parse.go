@@ -126,7 +126,7 @@ func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
 		From: from,
 		To:   to,
 		Rest: rest,
-		IRC:  i.irc,
+		I:    i,
 	}
 
 	for _, hi := range run {

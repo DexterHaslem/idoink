@@ -23,6 +23,19 @@ type idoink struct {
 
 // I is an instance of the idoink bot, it has functions to control it
 type I interface {
+
+	// These are wrappers above irc which
+	// will be exposed to the handlers
+
+	Nick() string
+	SetNick(string) error
+	Chans() []string
+	JoinChan(string) error
+	PartChan(string) error
+	Message(to string, msg string) error
+	Raw(string) error
+	// server is fixed tho
+
 	Start() error
 	Stop() error
 	AddHandler(string, H) (int, error)
@@ -32,20 +45,72 @@ type I interface {
 // New creates a new IDoink bot.
 // chans is a comma separated list of channels to join
 func New(nick, server, chans string) I {
-	return &idoink{
-		nick:      nick,
-		server:    server,
-		chansList: chans,
+	parsedChans := []string{}
+	if chans != "" {
+		parsedChans = strings.Split(chans, ",")
 	}
+
+	return &idoink{
+		m:           &sync.Mutex{},
+		handlers:    map[int]*hm{},
+		nick:        nick,
+		server:      server,
+		chansList:   chans,
+		parsedChans: parsedChans,
+	}
+}
+
+func (i *idoink) Nick() string {
+	return i.nick
+}
+
+func (i *idoink) SetNick(nn string) error {
+	if err := i.irc.SetNick(nn); err != nil {
+		return err
+	}
+	i.nick = nn
+	return nil
+}
+
+type errFunc func() error
+
+func chkConnected(i *idoink, f errFunc) error {
+	if i.irc == nil {
+		return errors.New("not connected")
+	}
+	return f()
+}
+
+func (i *idoink) Chans() []string {
+	return i.parsedChans
+}
+
+func (i *idoink) JoinChan(c string) error {
+	return chkConnected(i, func() error {
+		return i.irc.Join(c)
+	})
+}
+
+func (i *idoink) PartChan(c string) error {
+	return chkConnected(i, func() error {
+		return i.irc.Part(c)
+	})
+}
+
+func (i *idoink) Message(to, msg string) error {
+	return chkConnected(i, func() error {
+		return i.irc.PrivMsg(to, msg)
+	})
+}
+
+func (i *idoink) Raw(cmd string) error {
+	return chkConnected(i, func() error {
+		return i.irc.Cmd(cmd)
+	})
 }
 
 // Start will start the irc bot on a new goroutine, it will not block caller
 func (i *idoink) Start() error {
-	i.parsedChans = []string{}
-	if i.chansList != "" {
-		i.parsedChans = strings.Split(i.chansList, ",")
-	}
-
 	newIrc, err := irc.New(i.nick, i.server, i.parsedChans)
 	if err != nil {
 		//log.Fatal(err)
@@ -88,14 +153,14 @@ func (i *idoink) AddHandler(prefix string, h H) (int, error) {
 	// note: prefix duplicates are allowed currently.
 	// add a filter here if they should be unique
 	i.hc++
-
-	i.handlers[i.hc] = &hm{
-		id:     i.hc,
+	id := i.hc
+	i.handlers[id] = &hm{
+		id:     id,
 		h:      h,
 		prefix: prefix,
 	}
 
-	return 0, nil
+	return id, nil
 }
 
 func (i *idoink) RemoveHandler(id int) error {
