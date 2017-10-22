@@ -146,19 +146,19 @@ func (i *idoink) Stop() error {
 }
 
 // AddHandler will add a new hook for every privmsg line received
-// it will only fire for a given prefix if it is not an empty string
-func (i *idoink) AddHandler(prefix string, h H) (int, error) {
+// it will only fire for a given cmd if it is not an empty string
+func (i *idoink) AddHandler(cmd string, h H) (int, error) {
 	i.m.Lock()
 	defer i.m.Unlock()
 
-	// note: prefix duplicates are allowed currently.
+	// note: cmd duplicates are allowed currently.
 	// add a filter here if they should be unique
 	i.hc++
 	id := i.hc
 	i.handlers[id] = &hm{
-		id:     id,
-		h:      h,
-		prefix: prefix,
+		id:  id,
+		h:   h,
+		cmd: cmd,
 	}
 
 	return id, nil

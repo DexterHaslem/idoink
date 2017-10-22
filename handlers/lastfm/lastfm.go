@@ -1,9 +1,10 @@
-package main
+package lastfm
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"idoink"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-const lastfmCmd = "lastfm"
+const LastfmCmd = "lastfm"
 
 // 0 = query string, 1 = api key
 const lastfmAPI = "http://ws.audioscrobbler.com/2.0/?method=%s&api_key=%s&format=json"
@@ -25,6 +26,8 @@ type lastfmArtist struct {
 	Name      string `json:"name"`
 	Playcount string `json:"playcount"` // string in api l o l
 }
+
+// TODO: inline anon types for these
 
 type lastfmTopArtists struct {
 	Artists []*lastfmArtist `json:"artist"`
@@ -221,25 +224,25 @@ func artistsStr(ax []*lastfmArtist) string {
 	return b.String()
 }
 
-func lastfm(from, to string, chunks ...string) {
+func lastfm(e *idoink.E) (bool, error) { //(from, to string, e.Rest ...string) {
 	if lastfmCreds == nil || lastfmCreds.APIKey == "" {
-		return
+		return false, nil
 	}
 
-	if len(chunks) < 2 {
-		return
+	if len(e.Rest) < 2 {
+		return false, nil
 	}
 
-	subcmd := chunks[0]
-	user := chunks[1]
+	subcmd := e.Rest[0]
+	user := e.Rest[1]
 
 	// TODO: encode
 	msg := ""
 	switch subcmd {
 	case "ta":
 		count := 5
-		if len(chunks) >= 3 {
-			tryCount, err := strconv.Atoi(chunks[2])
+		if len(e.Rest) >= 3 {
+			tryCount, err := strconv.Atoi(e.Rest[2])
 			if err == nil {
 				count = tryCount
 			}
@@ -247,25 +250,25 @@ func lastfm(from, to string, chunks ...string) {
 
 		ta := getTopArtists(user, count)
 		if ta == nil {
-			msg = fmt.Sprintf("%s: lastfm - didnt get any top artists for %s", from, user)
+			msg = fmt.Sprintf("%s: lastfm - didnt get any top artists for %s", e.From, user)
 			break
 		}
 
 		artistsStr := artistsStr(ta)
 
 		msg = fmt.Sprintf("%s: lastfm - top artists for %s: %s",
-			from, user, artistsStr)
+			e.From, user, artistsStr)
 		break
 	case "u":
 		ui := getUserStats(user)
 
 		if ui == nil {
-			msg = fmt.Sprintf("%s: lastfm - failed to get user %s", from, user)
+			msg = fmt.Sprintf("%s: lastfm - failed to get user %s", e.From, user)
 		} else {
 			// convert the timestamp string. hilarious the #text one is not a string, so use it
 			rt := time.Unix(ui.Registered.Text, 0)
-			msg = fmt.Sprintf("%s: lastfm - user: '%s' registered on %s, name: '%s' age: '%s' total scrobs: '%s'", from,
-				ui.Name, rt, ui.RealName, ui.Age, ui.Scrobs)
+			msg = fmt.Sprintf("%s: lastfm - user: '%s' registered on %s, name: '%s' age: '%s' total scrobs: '%s'",
+				e.From, ui.Name, rt, ui.RealName, ui.Age, ui.Scrobs)
 		}
 
 		break
@@ -273,16 +276,18 @@ func lastfm(from, to string, chunks ...string) {
 		r := getRecentTracks(user)
 
 		if r == nil {
-			msg = fmt.Sprintf("%s: lastfm - failed to get recent tracks for %s", from, user)
+			msg = fmt.Sprintf("%s: lastfm - failed to get recent tracks for %s", e.From, user)
 			break
 		}
 		recentTrackStr := recentTracksStr(r)
 
-		msg = fmt.Sprintf("%s: lastfm - recent tracks for %s: %s", from, user, recentTrackStr)
+		msg = fmt.Sprintf("%s: lastfm - recent tracks for %s: %s", e.From, user, recentTrackStr)
 
 	default:
-		msg = fmt.Sprintf("%s: unknown lastfm command '%s'", from, subcmd)
+		msg = fmt.Sprintf("%s: unknown lastfm command '%s'", e.From, subcmd)
 	}
 
-	i.PrivMsg(to, msg)
+	e.I.Message(e.To, msg)
+
+	return false, nil
 }

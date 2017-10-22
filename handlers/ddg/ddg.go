@@ -1,8 +1,9 @@
-package main
+package ddg
 
 import (
 	"encoding/json"
 	"fmt"
+	"idoink"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -30,36 +31,38 @@ type ddgResp struct {
 	Type           string       `json:"Type"`
 }
 
-func ddg(from, to string, chunks ...string) {
+func ddg(e *idoink.E) (bool, error) { //from, to string, chunks ...string) {
 	// squish message to flat string and then query it
-	q := strings.Join(chunks, "")
+	q := strings.Join(e.Rest, "")
 	url := fmt.Sprintf(ddgAPI, q)
 
 	go func() {
 		r, err := http.Get(url)
 		if err != nil {
-			i.PrivMsg(to, "ddg: i messed up requesting to search ddg :-(")
+			e.I.Message(e.To, "ddg: i messed up requesting to search ddg :-(")
 			return
 		}
 
 		rb, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			i.PrivMsg(to, "ddg: i messed up reading response from ddg :-(")
+			e.I.Message(e.To, "ddg: i messed up reading response from ddg :-(")
 		}
 
 		pr := &ddgResp{}
 		err = json.Unmarshal(rb, pr)
 		if err != nil {
-			i.PrivMsg(to, "ddg: i messed up reading response from ddg :-(")
+			e.I.Message(e.To, "ddg: i messed up reading response from ddg :-(")
 		}
 		msg := ""
 		if len(pr.Results) > 0 {
 			u := pr.Results[0].FirstURL
 			t := pr.Results[0].Text
-			msg = fmt.Sprintf("%s: ddg - %s - %s (%s)", from, t, u, pr.Type)
+			msg = fmt.Sprintf("%s: ddg - %s - %s (%s)", e.From, t, u, pr.Type)
 		} else {
-			msg = fmt.Sprintf("%s: ddg - I didnt find any instant answers (the api sucks)", from)
+			msg = fmt.Sprintf("%s: ddg - I didnt find any instant answers (the api sucks)", e.From)
 		}
-		i.PrivMsg(to, msg)
+		e.I.Message(e.To, msg)
 	}()
+
+	return false, nil
 }

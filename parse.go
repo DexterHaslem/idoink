@@ -110,7 +110,7 @@ func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
 		if !ok {
 			break
 		}
-		if hi.prefix == "" || hi.prefix == cmd {
+		if hi.cmd == "" || hi.cmd == cmd {
 			run = append(run, hi)
 		}
 	}
@@ -134,7 +134,7 @@ func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
 		cont, err := hi.h(e)
 
 		if err != nil {
-			log.Printf("error on %s handler(#%d): %s\n", hi.prefix, hi.id, err)
+			log.Printf("error on %s handler(#%d): %s\n", hi.cmd, hi.id, err)
 		} else if !cont {
 			break
 		}

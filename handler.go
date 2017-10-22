@@ -16,9 +16,9 @@ type E struct {
 // It returns true if it stops any further processing, and any error that occured.
 type H func(e *E) (bool, error)
 
-// internal bookkeeping for registered prefix
+// internal bookkeeping for registered cmd
 type hm struct {
-	id     int
-	prefix string
-	h      H
+	id  int
+	cmd string
+	h   H
 }
