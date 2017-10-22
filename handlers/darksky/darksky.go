@@ -91,6 +91,10 @@ func DarkSky(e *idoink.E) (bool, error) {
 			Temperature         float32 `json:"temperature"`
 			ApparentTemperature float32 `json:"apparentTemperature"`
 		} `json:"currently"`
+
+		Daily struct {
+			Summary string `json:"summary"`
+		} `json:"daily"`
 	}
 
 	p := &darkskyResp{}
@@ -99,7 +103,8 @@ func DarkSky(e *idoink.E) (bool, error) {
 		return false, err
 	}
 
-	msg := fmt.Sprintf("%s: it is currently %.1f degrees at %s", e.From, p.Currently.Temperature, loc)
+	msg := fmt.Sprintf("%s: it is currently %.1f degrees at %s. Daily summary: %s",
+		e.From, p.Currently.Temperature, loc, p.Daily.Summary)
 	e.I.Message(e.To, msg)
 	return false, nil
 }
