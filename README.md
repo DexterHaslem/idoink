@@ -16,21 +16,20 @@ Here is an example using an existing handler:
 
 
 ```go
-	import "github.com/DexterHaslem/idoink"
+import "github.com/DexterHaslem/idoink"
 
-	// ....
+// ....
 
-	// note the server has :port
-	i := idoink.New("mynick", "irc.freenode.net:6667", "flatearth")
+// note the server has :port
+i := idoink.New("mynick", "irc.freenode.net:6667", "flatearth")
 
-	// this is a provided handler in idoink/handlers/admin
-	i.AddHandler(admin.AdminCommand, admin.Admin)
+// this is a provided handler in idoink/handlers/admin
+i.AddHandler(admin.AdminCommand, admin.Admin)
 
-	// start will block caller on success. if you want async, run in a goroutine
-	if err := i.Start(); err != nil {
-		log.Fatal(err)
-	}
-
+// start will block caller on success. if you want async, run in a goroutine
+if err := i.Start(); err != nil {
+	log.Fatal(err)
+}
 	// profit!
 ```
 
