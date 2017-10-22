@@ -40,12 +40,15 @@ var lastfmCreds *lastfmApiCreds
 
 func init() {
 	lastfmCreds = &lastfmApiCreds{}
-	fb, err := ioutil.ReadFile("lastfm.json")
+	// TODO: figure out how to configure this.
+	fb, err := ioutil.ReadFile("../handlers/lastfm/lastfm.json")
 	if err == nil {
 		err = json.Unmarshal(fb, lastfmCreds)
 		if err != nil {
 			log.Println("failed to load lastfm api key")
 		}
+	} else {
+		log.Println("lastfm::couldnt find lastfm.json")
 	}
 }
 
