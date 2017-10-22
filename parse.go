@@ -3,6 +3,7 @@ package idoink
 import (
 	"log"
 	"strings"
+	"time"
 )
 
 const botMagic = "^bot"
@@ -70,31 +71,33 @@ func (i *idoink) tryServerMessage(chunks []string) {
 }
 
 func (i *idoink) onPrivMsg(from, to string, rest ...string) {
-	//:dmh!sid189360@id-189360.charlton.irccloud.com PRIVMSG #warsow.na :haa ownage
-	fn := strings.Split(from, "!")[0][1:]
-	msg := strings.Join(rest, " ")[1:]
-	log.Printf("privmsg from %s to %s: %s\n", fn, to, msg)
+	// start commands at beginning of msg
+	cmd := rest[0][1:] // skip the message part first character because its ':'
 
-	// always update last seen even if not for us
-	// updateLastSeen(fn, msg, to)
+	// from starts with ':' as well, trim it, and is full netmask
 
-	// so first thing we check for is bot magic
-	trimmed := rest[0][1:]
-	if trimmed != botMagic {
-		return
+	fullnm := from[1:]
+	fromchunks := strings.Split(fullnm, "!")
+	nick := fromchunks[0]
+	netmask := fromchunks[1]
+
+	// construct one new event for all handlers.
+	// if 3rd party handler modify it, ¯\_(ツ)_/¯
+	e := &E{
+		Cmd:      cmd,
+		From:     nick,
+		FullFrom: fullnm,
+		Netmask:  netmask,
+		To:       to,
+		Rest:     rest[1:], // skip cmd
+		I:        i,
+		Time:     time.Now(),
 	}
 
-	// next message must be the bot specific command
-	cmd := rest[1]
-	params := []string{}
-	if len(rest) >= 3 {
-		params = rest[2:]
-	}
-
-	i.handleBotMsg(fn, to, cmd, params...)
+	i.handleBotMsg(e) //fn, to, cmd, params...)
 }
 
-func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
+func (i *idoink) handleBotMsg(e *E) { //from, to, cmd string, rest ...string) {
 	// nothing to run
 	if i.hc < 1 {
 		return
@@ -110,32 +113,25 @@ func (i *idoink) handleBotMsg(from, to, cmd string, rest ...string) {
 		if !ok {
 			break
 		}
-		if hi.cmd == "" || hi.cmd == cmd {
+		if hi.cmd == "" || hi.cmd == e.Cmd {
 			run = append(run, hi)
 		}
 	}
 
 	if len(run) < 1 {
-		i.irc.PrivMsg(to, "unknown command")
+		i.irc.PrivMsg(e.To, "unknown command")
 		return
-	}
-
-	// construct one new event for all handlers.
-	// if 3rd party handler modify it, ¯\_(ツ)_/¯
-	e := &E{
-		From: from,
-		To:   to,
-		Rest: rest,
-		I:    i,
 	}
 
 	for _, hi := range run {
 
-		cont, err := hi.h(e)
+		stop, err := hi.h(e)
 
 		if err != nil {
 			log.Printf("error on %s handler(#%d): %s\n", hi.cmd, hi.id, err)
-		} else if !cont {
+		}
+
+		if stop {
 			break
 		}
 	}

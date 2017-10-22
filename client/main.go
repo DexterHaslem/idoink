@@ -31,9 +31,11 @@ func main() {
 	i.AddHandler(admin.AdminCommand, admin.Admin)
 	i.AddHandler(ddg.DDGCmd, ddg.DDG)
 	i.AddHandler(lastfm.LastfmCmd, lastfm.LastFM)
-	i.AddHandler(lastseen.LastSeenCmd, lastseen.LastSeen)
 	i.AddHandler(darksky.Cmd, darksky.DarkSky)
 
+	// for last seen make the updater always run
+	i.AddHandler("", lastseen.UpdateLastSeen)
+	i.AddHandler(lastseen.LastSeenCmd, lastseen.QueryLastSeen)
 	if err := i.Start(); err != nil {
 		log.Fatal(err)
 	}

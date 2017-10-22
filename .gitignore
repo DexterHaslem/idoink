@@ -4,3 +4,5 @@ debug
 *.exe
 .vscode
 *.json
+*.db
+*.db.lock
