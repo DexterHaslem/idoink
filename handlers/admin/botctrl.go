@@ -55,29 +55,32 @@ func Admin(e *idoink.E) (bool, error) {
 		// geninfo maybe merge into version
 		break
 	case "s":
-		// system info, current gc and heap info
-		s := runtime.MemStats{}
-		runtime.ReadMemStats(&s)
-
-		// raw bytes -> nice string
-		np := func(v uint64) string {
-			// convert to kB/mB and add type
-			suffix := "KB"
-			converted := float64(v) / 1024.0
-			if converted > 1024 {
-				converted /= 1024
-				suffix = "MB"
-			}
-			return fmt.Sprintf("%.1f%s", converted, suffix)
-		}
-
-		msg := fmt.Sprintf("%s: meminfo (HEAP): alloc=%s idle=%s inuse=%s objects=%s released=%s sys=%s",
-			e.From, np(s.HeapAlloc), np(s.HeapIdle), np(s.HeapInuse), np(s.HeapObjects),
-			np(s.HeapReleased), np(s.HeapSys))
-
-		e.I.Message(e.To, msg)
-		break
+		sysInfo(e)
 	}
 
 	return false, nil
+}
+
+func sysInfo(e *idoink.E) {
+	// system info, current gc and heap info
+	s := runtime.MemStats{}
+	runtime.ReadMemStats(&s)
+
+	// raw bytes -> nice string
+	np := func(v uint64) string {
+		// convert to kB/mB and add type
+		suffix := "KB"
+		converted := float64(v) / 1024.0
+		if converted > 1024 {
+			converted /= 1024
+			suffix = "MB"
+		}
+		return fmt.Sprintf("%.1f%s", converted, suffix)
+	}
+
+	msg := fmt.Sprintf("%s: meminfo (HEAP): alloc=%s idle=%s inuse=%s objects=%s released=%s sys=%s",
+		e.From, np(s.HeapAlloc), np(s.HeapIdle), np(s.HeapInuse), np(s.HeapObjects),
+		np(s.HeapReleased), np(s.HeapSys))
+
+	e.I.Message(e.To, msg)
 }
