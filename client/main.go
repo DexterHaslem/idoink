@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"idoink"
+	"idoink/handlers/admin"
 	"idoink/handlers/ddg"
 	"idoink/handlers/lastfm"
 	"log"
@@ -22,6 +23,10 @@ func main() {
 
 	i := idoink.New(*nick, *server, *chans)
 
+	// just register all handlers for now. realistically we could register one simple one
+	// that allows registering rest via admin cmds
+
+	i.AddHandler(admin.AdminCommand, admin.Admin)
 	i.AddHandler(ddg.DDGCmd, ddg.DDG)
 	i.AddHandler(lastfm.LastfmCmd, lastfm.LastFM)
 
