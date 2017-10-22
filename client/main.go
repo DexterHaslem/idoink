@@ -4,8 +4,10 @@ import (
 	"flag"
 	"idoink"
 	"idoink/handlers/admin"
+	"idoink/handlers/darksky"
 	"idoink/handlers/ddg"
 	"idoink/handlers/lastfm"
+	"idoink/handlers/lastseen"
 	"log"
 )
 
@@ -29,6 +31,8 @@ func main() {
 	i.AddHandler(admin.AdminCommand, admin.Admin)
 	i.AddHandler(ddg.DDGCmd, ddg.DDG)
 	i.AddHandler(lastfm.LastfmCmd, lastfm.LastFM)
+	i.AddHandler(lastseen.LastSeenCmd, lastseen.LastSeen)
+	i.AddHandler(darksky.Cmd, darksky.DarkSky)
 
 	if err := i.Start(); err != nil {
 		log.Fatal(err)

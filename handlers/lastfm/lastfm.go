@@ -41,7 +41,7 @@ var lastfmCreds *lastfmApiCreds
 func init() {
 	lastfmCreds = &lastfmApiCreds{}
 	// TODO: figure out how to configure this.
-	fb, err := ioutil.ReadFile("../handlers/lastfm/lastfm.json")
+	fb, err := ioutil.ReadFile("../apikeys/lastfm.json")
 	if err == nil {
 		err = json.Unmarshal(fb, lastfmCreds)
 		if err != nil {

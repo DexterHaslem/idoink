@@ -3,5 +3,4 @@ debug
 *.test
 *.exe
 .vscode
-
-handlers/lastfm/lastfm.json
+*.json
