@@ -33,11 +33,11 @@ if err := i.Start(); err != nil {
 	// profit!
 ```
 
-> NOTE: there is also a client using all provided andlers in `client/main.go`
+> NOTE: there is also a client using all provided handlers in `client/main.go`
 
 
 
-### creating handlers
+### Creating handlers
 
 to create a handler, you simply need to make a function
 with the following signature:
@@ -66,6 +66,28 @@ from processing. This will be unlikely for most commands.
 Return any errors that occur during processing if
 possible and the error will be reported.
 
+To interact with IRC you can use the provided `I` instance:
+
+```go
+type I interface {
+
+	// These are wrappers above irc which
+	// will be exposed to the handlers
+
+	Nick() string
+	SetNick(string) error
+	Chans() []string
+	JoinChan(string) error
+	PartChan(string) error
+	Message(to string, msg string) error
+
+	// raw irc line, left as is, but \r\n is added to end
+	Raw(string) error
+
+	// ...
+}
+
+```
 
 **Command prefix**
 
