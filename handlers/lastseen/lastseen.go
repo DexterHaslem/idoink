@@ -38,7 +38,7 @@ func UpdateLastSeen(e *idoink.E) (bool, error) {
 	}
 
 	// HACK:
-	msg := e.Cmd + " " + strings.Join(e.Rest, "")
+	msg := e.Cmd + " " + strings.Join(e.Rest, " ")
 
 	s := &ls{
 		When: time.Now(),
