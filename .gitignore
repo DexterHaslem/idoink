@@ -1,6 +1,7 @@
 debug
 *.debug
 *.test
+*.exe
 
 
 handlers/lastfm/lastfm.json
