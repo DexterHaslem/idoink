@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const ddgCmd = "ddg"
+const DDGCmd = "ddg"
 
 const ddgAPI = "https://api.duckduckgo.com/?q=%s&format=json&t=dmhbot"
 
@@ -31,7 +31,7 @@ type ddgResp struct {
 	Type           string       `json:"Type"`
 }
 
-func ddg(e *idoink.E) (bool, error) { //from, to string, chunks ...string) {
+func DDG(e *idoink.E) (bool, error) { //from, to string, chunks ...string) {
 	// squish message to flat string and then query it
 	q := strings.Join(e.Rest, "")
 	url := fmt.Sprintf(ddgAPI, q)

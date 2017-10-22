@@ -224,7 +224,7 @@ func artistsStr(ax []*lastfmArtist) string {
 	return b.String()
 }
 
-func lastfm(e *idoink.E) (bool, error) { //(from, to string, e.Rest ...string) {
+func LastFM(e *idoink.E) (bool, error) { //(from, to string, e.Rest ...string) {
 	if lastfmCreds == nil || lastfmCreds.APIKey == "" {
 		return false, nil
 	}

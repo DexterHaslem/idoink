@@ -109,7 +109,7 @@ func (i *idoink) Raw(cmd string) error {
 	})
 }
 
-// Start will start the irc bot on a new goroutine, it will not block caller
+// Start will start the irc bot, will block caller
 func (i *idoink) Start() error {
 	newIrc, err := irc.New(i.nick, i.server, i.parsedChans)
 	if err != nil {
@@ -119,23 +119,23 @@ func (i *idoink) Start() error {
 
 	i.irc = newIrc
 
-	go func() {
-		mc := make(chan string, 5)
+	//go func() {
+	mc := make(chan string, 5)
 
-		i.irc.Start(func(m string) {
-			mc <- m
-		}, func(e error) {
-			log.Fatal(e)
-			close(mc)
-		})
+	i.irc.Start(func(m string) {
+		mc <- m
+	}, func(e error) {
+		log.Fatal(e)
+		close(mc)
+	})
 
-		for m := range mc {
-			if i.stopRequested {
-				break
-			}
-			i.parseMsg(m)
+	for m := range mc {
+		if i.stopRequested {
+			break
 		}
-	}()
+		i.parseMsg(m)
+	}
+	//}()
 	return nil
 }
 
