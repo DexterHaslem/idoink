@@ -1,6 +1,6 @@
 package irc
 
-import "github.com/labstack/gommon/log"
+import "log"
 
 type IRC struct {
 	c     *conn
@@ -10,7 +10,6 @@ type IRC struct {
 }
 
 func (i *IRC) cmd(f string, args ...interface{}) error {
-	//log.Printf("sending -> %s %+v", f, args...)
 	return i.c.write(f, args...)
 }
 
@@ -90,7 +89,7 @@ func (i *IRC) readLoop(m MessageCallback, done DoneCallback) {
 	for {
 		r, err := i.c.read()
 		if err != nil {
-			log.Error(err)
+			log.Println(err)
 			if done != nil {
 				done(err)
 			}

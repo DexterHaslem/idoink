@@ -141,7 +141,8 @@ func (i *idoink) Start() error {
 
 func (i *idoink) Stop() error {
 	i.stopRequested = true
-	return nil
+	// just slam it
+	return i.irc.Close()
 }
 
 // AddHandler will add a new hook for every privmsg line received
