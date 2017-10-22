@@ -6,3 +6,5 @@ debug
 *.json
 *.db
 *.db.lock
+
+.idea

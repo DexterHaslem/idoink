@@ -4,6 +4,7 @@ import (
 	"flag"
 	"idoink"
 	"idoink/handlers/admin"
+	"idoink/handlers/aws"
 	"idoink/handlers/darksky"
 	"idoink/handlers/ddg"
 	"idoink/handlers/lastfm"
@@ -36,6 +37,10 @@ func main() {
 	// for last seen make the updater always run
 	i.AddHandler("", lastseen.UpdateLastSeen)
 	i.AddHandler(lastseen.LastSeenCmd, lastseen.QueryLastSeen)
+
+	aws.Setup()
+	i.AddHandler("", aws.Query)
+
 	if err := i.Start(); err != nil {
 		log.Fatal(err)
 	}
